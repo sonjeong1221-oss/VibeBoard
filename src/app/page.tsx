@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/table";
 import { getAllPosts } from "@/lib/posts";
 
+export const dynamic = "force-dynamic";
+
 function formatDate(isoDate: string) {
   return new Date(isoDate + "Z").toLocaleString("ko-KR", {
     year: "numeric",
@@ -20,8 +22,8 @@ function formatDate(isoDate: string) {
   });
 }
 
-export default function Home() {
-  const posts = getAllPosts();
+export default async function Home() {
+  const posts = await getAllPosts();
 
   return (
     <div className="flex flex-1 flex-col gap-6">

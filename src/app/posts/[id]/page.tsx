@@ -22,13 +22,13 @@ export default async function PostPage({
 }) {
   const { id } = await params;
   const postId = Number(id);
-  const post = Number.isFinite(postId) ? getPostById(postId) : undefined;
+  const post = Number.isFinite(postId) ? await getPostById(postId) : undefined;
 
   if (!post) {
     notFound();
   }
 
-  incrementViews(post.id);
+  await incrementViews(post.id);
 
   return (
     <div className="flex flex-col gap-6">

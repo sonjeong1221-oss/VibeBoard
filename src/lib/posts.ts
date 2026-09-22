@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 
 export interface Post {
   id: number;
@@ -10,46 +10,64 @@ export interface Post {
   updated_at: string;
 }
 
-export function getAllPosts(): Post[] {
-  return db
-    .prepare("SELECT * FROM posts ORDER BY id DESC")
-    .all() as Post[];
+const TABLE = "vibeboard_posts";
+
+export async function getAllPosts(): Promise<Post[]> {
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("*")
+    .order("id", { ascending: false });
+
+  if (error) throw error;
+  return data;
 }
 
-export function getPostById(id: number): Post | undefined {
-  return db.prepare("SELECT * FROM posts WHERE id = ?").get(id) as
-    | Post
-    | undefined;
+export async function getPostById(id: number): Promise<Post | undefined> {
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data ?? undefined;
 }
 
-export function incrementViews(id: number): void {
-  db.prepare("UPDATE posts SET views = views + 1 WHERE id = ?").run(id);
+export async function incrementViews(id: number): Promise<void> {
+  const { error } = await supabase.rpc("increment_vibeboard_post_views", {
+    post_id: id,
+  });
+  if (error) throw error;
 }
 
-export function createPost(input: {
+export async function createPost(input: {
   title: string;
   author: string;
   content: string;
-}): number {
-  const result = db
-    .prepare(
-      "INSERT INTO posts (title, author, content) VALUES (@title, @author, @content)"
-    )
-    .run(input);
-  return Number(result.lastInsertRowid);
+}): Promise<number> {
+  const { data, error } = await supabase
+    .from(TABLE)
+    .insert(input)
+    .select("id")
+    .single();
+
+  if (error) throw error;
+  return data.id;
 }
 
-export function updatePost(
+export async function updatePost(
   id: number,
   input: { title: string; author: string; content: string }
-): void {
-  db.prepare(
-    `UPDATE posts
-     SET title = @title, author = @author, content = @content, updated_at = datetime('now')
-     WHERE id = @id`
-  ).run({ ...input, id });
+): Promise<void> {
+  const { error } = await supabase
+    .from(TABLE)
+    .update({ ...input, updated_at: new Date().toISOString() })
+    .eq("id", id);
+
+  if (error) throw error;
 }
 
-export function deletePost(id: number): void {
-  db.prepare("DELETE FROM posts WHERE id = ?").run(id);
+export async function deletePost(id: number): Promise<void> {
+  const { error } = await supabase.from(TABLE).delete().eq("id", id);
+  if (error) throw error;
 }

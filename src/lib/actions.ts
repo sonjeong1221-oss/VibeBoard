@@ -23,7 +23,7 @@ export async function createPostAction(
   const parsed = parsePostInput(formData);
   if (!parsed.ok) return parsed.error;
 
-  const id = posts.createPost(parsed.data);
+  const id = await posts.createPost(parsed.data);
   revalidatePath("/");
   redirect(`/posts/${id}`);
 }
@@ -36,14 +36,14 @@ export async function updatePostAction(
   const parsed = parsePostInput(formData);
   if (!parsed.ok) return parsed.error;
 
-  posts.updatePost(id, parsed.data);
+  await posts.updatePost(id, parsed.data);
   revalidatePath("/");
   revalidatePath(`/posts/${id}`);
   redirect(`/posts/${id}`);
 }
 
 export async function deletePostAction(id: number): Promise<void> {
-  posts.deletePost(id);
+  await posts.deletePost(id);
   revalidatePath("/");
   redirect("/");
 }

@@ -11,7 +11,7 @@ export default async function EditPostPage({
 }) {
   const { id } = await params;
   const postId = Number(id);
-  const post = Number.isFinite(postId) ? getPostById(postId) : undefined;
+  const post = Number.isFinite(postId) ? await getPostById(postId) : undefined;
 
   if (!post) {
     notFound();
